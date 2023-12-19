@@ -30,7 +30,7 @@ Setting RCacheCleaner is pretty easy, you can download the executable or you can
 Now once you have the application open, you can now click *"Clear Cache"* and it should do it's job.
 
 ## License (c)
-You can fork this software, but uou can not fork it in a malicious way.
-You can not sell this software in any way.
+* You can fork this software, but you can not fork it in a malicious way.
+* You can not sell this software in any way.
 
 @deb-its
