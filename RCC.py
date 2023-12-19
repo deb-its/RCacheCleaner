@@ -37,7 +37,8 @@ def cache_clean(progress_var, status_label):
                     status_label.config(text=f"Deleted {cache_name}")
                     deleted_at_least_one_directory = True
                 else:
-                    status_label.config(text=f"There are no more Cache on {cache_name}")
+                    # Patch here because cache_name don't work for some reason
+                    status_label.config(text=f"No cache for {os.path.basename(cache_path)}")
             except Exception as e:
                 status_label.config(text=f"Error deleting {cache_path}: {e}")
 
@@ -50,7 +51,7 @@ def cache_clean(progress_var, status_label):
 root = tk.Tk()
 root.title("Roblox Cache Cleaner")
 
-delete_button = tk.Button(root,text="Clear Cache",command=lambda: Thread(target=cache_clean,args=(progress_var, status_label),).start(),)
+delete_button = tk.Button(root, text="Clear Cache", command=lambda: Thread(target=cache_clean, args=(progress_var, status_label),).start(),)
 progress_var = tk.DoubleVar()
 progress_bar = ttk.Progressbar(root, variable=progress_var, length=290, mode="determinate")
 status_label = tk.Label(root, text="")
