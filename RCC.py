@@ -3,40 +3,54 @@ import shutil
 import tkinter as tk
 from tkinter import ttk
 from threading import Thread
+import psutil
 
-def cache_clean(logs_directory, progress_var, status_label):
+def is_roblox_running():
+    for process in psutil.process_iter(['pid', 'name']):
+        if "RobloxPlayerBeta.exe" in process.info['name']:
+            return True
+    return False
+
+def cache_clean(progress_var, status_label):
     try:
-        log_files = [f for f in os.listdir(logs_directory) if f.endswith(".log")]
-        total_files = len(log_files)
+        if is_roblox_running():
+            status_label.config(text="Please close Roblox before clearing cache.")
+            return
 
-        for index, filename in enumerate(log_files):
-            file_path = os.path.join(logs_directory, filename)
-            os.remove(file_path)
-            progress_value = (index + 1) / total_files * 100
-            progress_var.set(progress_value)
+        # Cache Paths so that it's organized
+        cache_paths = [
+            os.path.join(os.getenv("LOCALAPPDATA"), "Roblox", "logs"),
+            os.path.join(os.getenv("temp"), "Roblox"),
+        ]
 
-        temp_roblox_directory = os.path.join(os.environ['temp'], 'Roblox')
-        if os.path.exists(temp_roblox_directory):
-            total_temp_files = sum([len(files) for _, _, files in os.walk(temp_roblox_directory)])
-            progress_var.set(0)
-            for root, dirs, files in os.walk(temp_roblox_directory):
-                for index, file in enumerate(files):
-                    file_path = os.path.join(root, file)
-                    os.remove(file_path)
-                    temp_progress_value = (index + 1) / total_temp_files * 100
-                    progress_var.set(temp_progress_value)
-            shutil.rmtree(temp_roblox_directory)
-        else:
-            pass
+        total_directories = len(cache_paths)
+        deleted_at_least_one_directory = False
 
-        status_label.config(text="Roblox Cache Cleaned!")
+        for index, cache_path in enumerate(cache_paths):
+            try:
+                if os.path.exists(cache_path):
+                    cache_name = os.path.basename(cache_path)
+                    # Delete folder so it's faster (It doesn't break roblox, don't worry.)
+                    shutil.rmtree(cache_path)
+                    progress_value = (index + 1) / total_directories * 100
+                    progress_var.set(progress_value)
+                    status_label.config(text=f"Deleted {cache_name}")
+                    deleted_at_least_one_directory = True
+                else:
+                    status_label.config(text=f"There are no more Cache on {cache_name}")
+            except Exception as e:
+                status_label.config(text=f"Error deleting {cache_path}: {e}")
+
+        if deleted_at_least_one_directory:
+            status_label.config(text="Roblox Cache Cleaned!")
+
     except Exception as e:
         status_label.config(text=f"Error: {e}")
 
 root = tk.Tk()
 root.title("Roblox Cache Cleaner")
 
-delete_button = tk.Button(root, text="Clear Cache", command=lambda: Thread(target=cache_clean, args=(os.path.expandvars(r"%localappdata%\Roblox\logs"), progress_var, status_label)).start())
+delete_button = tk.Button(root,text="Clear Cache",command=lambda: Thread(target=cache_clean,args=(progress_var, status_label),).start(),)
 progress_var = tk.DoubleVar()
 progress_bar = ttk.Progressbar(root, variable=progress_var, length=290, mode="determinate")
 status_label = tk.Label(root, text="")
